@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#102b24">
   <link rel="icon" type="image/png" href="./icon.png">
   <link rel="apple-touch-icon" href="./icon.png">
-  <title>أذان أودنسه والطبيعة</title>
+  <title>zeina abo Alola prayer</title>
   <style>
     :root { color-scheme: dark; --bg: #102b24; --panel: rgba(255,255,255,.09); --gold: #f2c879; --muted: #d3ded7; }
     * { box-sizing: border-box; }
@@ -33,33 +33,33 @@
 </head>
 <body>
   <main>
-    <div class="badge">🌿 أوقات الصلاة • الطبيعة والسكينة</div>
-    <h1>أذان أودنسه</h1>
-    <div class="location">أودنسه، الدنمارك</div>
-    <div id="date">جارٍ تحميل التاريخ…</div>
+    <div class="badge">🌿 Prayer Times • Nature and Serenity</div>
+    <h1>zeina abo Alola prayer</h1>
+    <div class="location">Odense, Denmark</div>
+    <div id="date">Loading date…</div>
 
     <section class="hero" aria-live="polite">
-      <span class="label">الصلاة القادمة</span>
-      <strong id="next-name">جارٍ التحميل…</strong>
+      <span class="label">Next Prayer</span>
+      <strong id="next-name">Loading…</strong>
       <span id="countdown">--:--:--</span>
     </section>
 
-    <section class="grid" aria-label="مواقيت الصلاة">
-      <div class="prayer" id="card-Fajr"><span class="prayer-name">الفجر</span><strong class="prayer-time" id="time-Fajr">--:--</strong></div>
-      <div class="prayer" id="card-Dhuhr"><span class="prayer-name">الظهر</span><strong class="prayer-time" id="time-Dhuhr">--:--</strong></div>
-      <div class="prayer" id="card-Asr"><span class="prayer-name">العصر</span><strong class="prayer-time" id="time-Asr">--:--</strong></div>
-      <div class="prayer" id="card-Maghrib"><span class="prayer-name">المغرب</span><strong class="prayer-time" id="time-Maghrib">--:--</strong></div>
-      <div class="prayer" id="card-Isha"><span class="prayer-name">العشاء</span><strong class="prayer-time" id="time-Isha">--:--</strong></div>
-      <div class="prayer"><span class="prayer-name">الشروق</span><strong class="prayer-time" id="time-Sunrise">--:--</strong></div>
+    <section class="grid" aria-label="Prayer Times">
+      <div class="prayer" id="card-Fajr"><span class="prayer-name">Fajr</span><strong class="prayer-time" id="time-Fajr">--:--</strong></div>
+      <div class="prayer" id="card-Dhuhr"><span class="prayer-name">Dhuhr</span><strong class="prayer-time" id="time-Dhuhr">--:--</strong></div>
+      <div class="prayer" id="card-Asr"><span class="prayer-name">Asr</span><strong class="prayer-time" id="time-Asr">--:--</strong></div>
+      <div class="prayer" id="card-Maghrib"><span class="prayer-name">Maghrib</span><strong class="prayer-time" id="time-Maghrib">--:--</strong></div>
+      <div class="prayer" id="card-Isha"><span class="prayer-name">Isha</span><strong class="prayer-time" id="time-Isha">--:--</strong></div>
+      <div class="prayer"><span class="prayer-name">Sunrise</span><strong class="prayer-time" id="time-Sunrise">--:--</strong></div>
     </section>
 
-    <div id="status" role="status">جارٍ جلب مواقيت الصلاة…</div>
-    <button id="refresh" type="button">تحديث المواقيت</button>
-    <footer>المواقيت تجريبية ومحسوبة عبر خدمة AlAdhan (طريقة الحساب 3: رابطة العالم الإسلامي).<br>يُرجى مقارنتها بتوقيت المسجد المحلي قبل الاعتماد عليها.</footer>
+    <div id="status" role="status">Loading prayer times…</div>
+    <button id="refresh" type="button">Refresh Times</button>
+    <footer>Prayer times are calculated through the AlAdhan service using calculation method 3: Muslim World League.<br>Please compare the times with your local mosque schedule before relying on them.</footer>
   </main>
   <script>
     (function () {
-      var prayerNames = { Fajr: 'الفجر', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+      var prayerNames = { Fajr: 'Fajr', Dhuhr: 'Dhuhr', Asr: 'Asr', Maghrib: 'Maghrib', Isha: 'Isha' };
       var prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
       var todayRows = [];
       var tomorrowRows = [];
@@ -84,16 +84,16 @@
             try {
               var result = JSON.parse(xhr.responseText);
               if (result && result.data && result.data.timings) callback(null, result.data.timings);
-              else callback(new Error('بيانات المواقيت غير متاحة'));
+              else callback(new Error('Prayer time data is unavailable'));
             } catch (error) { callback(error); }
-          } else callback(new Error('تعذر الاتصال بخدمة المواقيت'));
+          } else callback(new Error('Unable to connect to the prayer time service'));
         };
-        xhr.onerror = function () { callback(new Error('تحقق من اتصال الإنترنت')); };
+        xhr.onerror = function () { callback(new Error('Please check your internet connection')); };
         xhr.send();
       }
       function updateDate() {
         var now = new Date();
-        document.getElementById('date').textContent = now.toLocaleDateString('ar-DK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('date').textContent = now.toLocaleDateString('en-DK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       }
       function makeRows(date, timings) {
         var rows = [];
@@ -118,7 +118,6 @@
           var card = document.getElementById('card-' + row.key);
           card.className = 'prayer' + (next && next.key === row.key && next.time.getDate() === now.getDate() ? ' next' : '');
         }
-        // Sunrise is shown separately and is not included in the next-prayer countdown.
         if (next) {
           document.getElementById('next-name').textContent = next.name;
           var seconds = Math.max(0, Math.floor((next.time.getTime() - now.getTime()) / 1000));
@@ -132,16 +131,16 @@
       function loadTimes() {
         var today = new Date();
         var tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        document.getElementById('status').textContent = 'جارٍ تحديث المواقيت…';
+        document.getElementById('status').textContent = 'Updating prayer times…';
         requestDay(today, function (error, timings) {
-          if (error) { document.getElementById('status').textContent = error.message + '؛ حاول التحديث لاحقًا.'; return; }
+          if (error) { document.getElementById('status').textContent = error.message + '; please try again later.'; return; }
           todayRows = makeRows(today, timings);
           var sunriseTime = timeDate(today, timings.Sunrise);
           document.getElementById('time-Sunrise').textContent = sunriseTime ? ('0' + sunriseTime.getHours()).slice(-2) + ':' + ('0' + sunriseTime.getMinutes()).slice(-2) : '--:--';
           requestDay(tomorrow, function (tomorrowError, tomorrowTimings) {
             tomorrowRows = tomorrowError ? [] : makeRows(tomorrow, tomorrowTimings);
             render();
-            document.getElementById('status').textContent = tomorrowError ? 'تم تحميل مواقيت اليوم؛ تعذر تحميل الغد.' : 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-DK');
+            document.getElementById('status').textContent = tomorrowError ? 'Today’s times loaded; tomorrow’s times could not be loaded.' : 'Last updated: ' + new Date().toLocaleTimeString('en-DK');
           });
         });
       }
