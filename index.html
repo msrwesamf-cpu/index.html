@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#102b24">
+  <link rel="icon" type="image/png" href="./icon.png">
+  <link rel="apple-touch-icon" href="./icon.png">
   <title>أذان أودنسه والطبيعة</title>
   <style>
     :root { color-scheme: dark; --bg: #102b24; --panel: rgba(255,255,255,.09); --gold: #f2c879; --muted: #d3ded7; }
@@ -61,7 +63,6 @@
       var prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
       var todayRows = [];
       var tomorrowRows = [];
-      var requestCount = 0;
 
       function dateKey(date) {
         var day = ('0' + date.getDate()).slice(-2);
@@ -71,8 +72,7 @@
       function timeDate(date, value) {
         var parts = String(value).match(/(\d{1,2}):(\d{2})/);
         if (!parts) return null;
-        var result = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Number(parts[1]), Number(parts[2]), 0, 0);
-        return result;
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), Number(parts[1]), Number(parts[2]), 0, 0);
       }
       function requestDay(date, callback) {
         var xhr = new XMLHttpRequest();
@@ -88,7 +88,7 @@
             } catch (error) { callback(error); }
           } else callback(new Error('تعذر الاتصال بخدمة المواقيت'));
         };
-        xhr.onerror = function () { callback(new Error('تحقق من اتصال الإنترنت')) };
+        xhr.onerror = function () { callback(new Error('تحقق من اتصال الإنترنت')); };
         xhr.send();
       }
       function updateDate() {
@@ -118,9 +118,7 @@
           var card = document.getElementById('card-' + row.key);
           card.className = 'prayer' + (next && next.key === row.key && next.time.getDate() === now.getDate() ? ' next' : '');
         }
-        var sunrise = document.getElementById('time-Sunrise');
         // Sunrise is shown separately and is not included in the next-prayer countdown.
-        requestCount = requestCount;
         if (next) {
           document.getElementById('next-name').textContent = next.name;
           var seconds = Math.max(0, Math.floor((next.time.getTime() - now.getTime()) / 1000));
