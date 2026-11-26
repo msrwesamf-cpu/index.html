@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#102b24">
   <link rel="icon" type="image/png" href="./icon.png">
   <link rel="apple-touch-icon" href="./icon.png">
-  <title>zeina abo Alola prayer</title>
+  <title>Zeina Abo Alola Prayer</title>
   <style>
     :root { color-scheme: dark; --bg: #102b24; --panel: rgba(255,255,255,.09); --gold: #f2c879; --muted: #d3ded7; }
     * { box-sizing: border-box; }
@@ -25,16 +25,29 @@
     .prayer-name { display: block; color: var(--muted); font-size: clamp(17px, 2vw, 22px); }
     .prayer-time { display: block; margin-top: 8px; color: #fff; direction: ltr; font-size: clamp(24px, 3vw, 34px); font-weight: bold; }
     #status { min-height: 28px; color: var(--muted); font-size: 16px; }
-    button { margin-top: 10px; padding: 12px 22px; border: 0; border-radius: 12px; color: #13251d; background: var(--gold); font-size: 17px; font-weight: bold; cursor: pointer; }
+    button, select { margin: 10px 5px 0; padding: 12px 18px; border: 0; border-radius: 12px; color: #13251d; background: var(--gold); font-size: 17px; font-weight: bold; cursor: pointer; }
+    button:focus-visible, select:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    .secondary-button { color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); }
     footer { margin-top: 22px; color: #b7c8bd; font-size: 14px; line-height: 1.7; }
+    dialog { width: min(560px, calc(100% - 28px)); padding: 0; border: 1px solid rgba(255,255,255,.22); border-radius: 22px; color: #fff; background: #18392e; box-shadow: 0 20px 70px rgba(0,0,0,.5); }
+    dialog::backdrop { background: rgba(0,0,0,.72); }
+    .adhkar-content { padding: 24px; text-align: center; }
+    .adhkar-content h2 { margin: 0 0 8px; color: var(--gold); font-size: 28px; }
+    .adhkar-content p { color: var(--muted); line-height: 1.6; }
+    .adhkar-card { min-height: 145px; display: grid; align-content: center; gap: 12px; margin: 18px 0; padding: 20px; border-radius: 16px; background: rgba(255,255,255,.08); }
+    #adhkar-title { color: var(--gold); font-size: 20px; }
+    #adhkar-text { font-size: clamp(20px, 4vw, 26px); line-height: 1.55; }
+    #adhkar-source { color: var(--muted); font-size: 14px; }
+    .adhkar-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+    #adhkar-count { min-width: 110px; color: var(--muted); align-self: center; }
     @media (min-width: 800px) { .grid { grid-template-columns: repeat(6, 1fr); } }
-    @media (max-width: 420px) { .grid { gap: 8px; } .prayer { padding: 14px 5px; } }
+    @media (max-width: 420px) { .grid { gap: 8px; } .prayer { padding: 14px 5px; } .adhkar-content { padding: 18px; } }
   </style>
 </head>
 <body>
   <main>
     <div class="badge">🌿 Prayer Times • Nature and Serenity</div>
-    <h1>zeina abo Alola prayer</h1>
+    <h1>Zeina Abo Alola Prayer</h1>
     <div class="location">Odense, Denmark</div>
     <div id="date">Loading date…</div>
 
@@ -55,14 +68,66 @@
 
     <div id="status" role="status">Loading prayer times…</div>
     <button id="refresh" type="button">Refresh Times</button>
+    <button id="open-adhkar" class="secondary-button" type="button">Daily Adhkar</button>
     <footer>Prayer times are calculated through the AlAdhan service using calculation method 3: Muslim World League.<br>Please compare the times with your local mosque schedule before relying on them.</footer>
   </main>
+
+  <dialog id="adhkar-dialog" aria-labelledby="adhkar-heading">
+    <div class="adhkar-content">
+      <h2 id="adhkar-heading">Daily Adhkar</h2>
+      <p>Choose a collection and read the English meaning of today’s remembrance.</p>
+      <label for="adhkar-category">Collection: </label>
+      <select id="adhkar-category">
+        <option value="morning">Morning</option>
+        <option value="evening">Evening</option>
+        <option value="anytime">Anytime</option>
+      </select>
+      <div class="adhkar-card" aria-live="polite">
+        <strong id="adhkar-title"></strong>
+        <span id="adhkar-text"></span>
+        <span id="adhkar-source"></span>
+      </div>
+      <div class="adhkar-controls">
+        <button id="adhkar-prev" class="secondary-button" type="button" aria-label="Previous remembrance">← Previous</button>
+        <span id="adhkar-count" aria-live="polite"></span>
+        <button id="adhkar-next" class="secondary-button" type="button" aria-label="Next remembrance">Next →</button>
+      </div>
+      <button id="close-adhkar" type="button">Close</button>
+    </div>
+  </dialog>
+
   <script>
     (function () {
       var prayerNames = { Fajr: 'Fajr', Dhuhr: 'Dhuhr', Asr: 'Asr', Maghrib: 'Maghrib', Isha: 'Isha' };
       var prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
       var todayRows = [];
       var tomorrowRows = [];
+
+      var adhkar = {
+        morning: [
+          { title: 'Ayat al-Kursi', text: 'Allah—there is no god worthy of worship except Him, the Ever-Living, the Sustainer of all.', source: 'Qur’an 2:255 (English meaning)' },
+          { title: 'Surah Al-Ikhlas', text: 'Say: He is Allah, the One. Allah, the Eternal Refuge. He neither begets nor is born, nor is there any equivalent to Him.', source: 'Qur’an 112:1–4 (English meaning)' },
+          { title: 'Surah Al-Falaq', text: 'Say: I seek refuge in the Lord of daybreak, from the evil of what He created, and from the evil of the darkness when it settles.', source: 'Qur’an 113:1–3 (English meaning)' },
+          { title: 'Surah An-Nas', text: 'Say: I seek refuge in the Lord of mankind, the King of mankind, the God of mankind.', source: 'Qur’an 114:1–3 (English meaning)' },
+          { title: 'Remembering Allah', text: 'Glory be to Allah and praise be to Him.', source: 'A well-known remembrance; see Sahih Muslim 2692' }
+        ],
+        evening: [
+          { title: 'Ayat al-Kursi', text: 'Allah—there is no god worthy of worship except Him, the Ever-Living, the Sustainer of all.', source: 'Qur’an 2:255 (English meaning)' },
+          { title: 'Surah Al-Ikhlas', text: 'Say: He is Allah, the One. Allah, the Eternal Refuge. He neither begets nor is born, nor is there any equivalent to Him.', source: 'Qur’an 112:1–4 (English meaning)' },
+          { title: 'Surah Al-Falaq', text: 'Say: I seek refuge in the Lord of daybreak, from the evil of what He created, and from the evil of the darkness when it settles.', source: 'Qur’an 113:1–3 (English meaning)' },
+          { title: 'Surah An-Nas', text: 'Say: I seek refuge in the Lord of mankind, the King of mankind, the God of mankind.', source: 'Qur’an 114:1–3 (English meaning)' },
+          { title: 'Seeking forgiveness', text: 'I ask Allah, the Almighty, to forgive me and I turn to Him in repentance.', source: 'Meaning of a reported prophetic supplication; Sahih al-Bukhari 6307' }
+        ],
+        anytime: [
+          { title: 'SubhanAllahi wa bihamdihi', text: 'Glory be to Allah and praise be to Him.', source: 'Sahih Muslim 2692' },
+          { title: 'Alhamdulillah', text: 'All praise and thanks belong to Allah.', source: 'A Qur’anic phrase used in remembrance' },
+          { title: 'Astaghfirullah', text: 'I seek forgiveness from Allah.', source: 'A short supplication for forgiveness' },
+          { title: 'La hawla wa la quwwata illa billah', text: 'There is no might or power except through Allah.', source: 'Sahih al-Bukhari 6384; Sahih Muslim 2704' }
+        ]
+      };
+      var category = 'morning';
+      var adhkarIndex = 0;
+      var adhkarDialog = document.getElementById('adhkar-dialog');
 
       function dateKey(date) {
         var day = ('0' + date.getDate()).slice(-2);
@@ -144,8 +209,40 @@
           });
         });
       }
+      function dailyIndex(list, date) {
+        var start = new Date(date.getFullYear(), 0, 0);
+        var dayNumber = Math.floor((date - start) / 86400000);
+        return dayNumber % list.length;
+      }
+      function renderAdhkar() {
+        var list = adhkar[category];
+        var item = list[adhkarIndex];
+        document.getElementById('adhkar-title').textContent = item.title;
+        document.getElementById('adhkar-text').textContent = item.text;
+        document.getElementById('adhkar-source').textContent = item.source;
+        document.getElementById('adhkar-count').textContent = (adhkarIndex + 1) + ' of ' + list.length;
+      }
+      function changeCategory(value) {
+        category = value;
+        adhkarIndex = dailyIndex(adhkar[category], new Date());
+        renderAdhkar();
+      }
+
       document.getElementById('refresh').onclick = loadTimes;
+      document.getElementById('open-adhkar').onclick = function () {
+        changeCategory(document.getElementById('adhkar-category').value);
+        if (typeof adhkarDialog.showModal === 'function') adhkarDialog.showModal();
+        else adhkarDialog.setAttribute('open', '');
+      };
+      document.getElementById('close-adhkar').onclick = function () {
+        if (typeof adhkarDialog.close === 'function') adhkarDialog.close();
+        else adhkarDialog.removeAttribute('open');
+      };
+      document.getElementById('adhkar-category').onchange = function (event) { changeCategory(event.target.value); };
+      document.getElementById('adhkar-prev').onclick = function () { adhkarIndex = (adhkarIndex + adhkar[category].length - 1) % adhkar[category].length; renderAdhkar(); };
+      document.getElementById('adhkar-next').onclick = function () { adhkarIndex = (adhkarIndex + 1) % adhkar[category].length; renderAdhkar(); };
       updateDate();
+      changeCategory(category);
       loadTimes();
       window.setInterval(render, 1000);
       window.setInterval(loadTimes, 30 * 60 * 1000);
