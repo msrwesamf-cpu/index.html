@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://odense.adhan/app" version="1.0.0" viewmodes="maximized">
+  <tizen:application id="OdenseAdhn.App" package="OdenseAdhn" required_version="2.3" />
+  <content src="index.html" />
+  <feature name="http://tizen.org/feature/screen.size.all" />
+  <name>أذان أودنسه والطبيعة</name>
+  <tizen:profile name="tv-samsung" />
+  <tizen:privilege name="http://tizen.org/privilege/internet" />
+  <access origin="https://api.aladhan.com" subdomains="false" />
+</widget>

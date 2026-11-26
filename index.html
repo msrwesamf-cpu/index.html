@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102b24">
+  <title>أذان أودنسه والطبيعة</title>
+  <style>
+    :root { color-scheme: dark; --bg: #102b24; --panel: rgba(255,255,255,.09); --gold: #f2c879; --muted: #d3ded7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #fff; font-family: Arial, Tahoma, sans-serif; background: radial-gradient(ellipse at 50% 0%, #35604a 0, #18392e 44%, #0c201c 100%); }
+    main { width: min(1050px, 94%); margin: 0 auto; padding: 5vh 0 3vh; text-align: center; }
+    .badge { color: var(--gold); letter-spacing: .04em; font-size: clamp(16px, 2vw, 22px); }
+    h1 { margin: 12px 0 6px; font-size: clamp(32px, 5vw, 58px); }
+    .location, #date { color: var(--muted); font-size: clamp(17px, 2.4vw, 24px); }
+    .hero { margin: 3vh auto; padding: 22px; max-width: 700px; border: 1px solid rgba(255,255,255,.15); border-radius: 24px; background: var(--panel); }
+    .label { color: var(--muted); font-size: clamp(17px, 2vw, 22px); }
+    #next-name { display: block; color: var(--gold); font-size: clamp(32px, 5vw, 54px); margin: 8px 0; }
+    #countdown { direction: ltr; display: block; font-size: clamp(38px, 7vw, 76px); font-weight: bold; font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 3vh 0; }
+    .prayer { padding: 18px 10px; min-height: 100px; border-radius: 18px; background: var(--panel); border: 1px solid rgba(255,255,255,.1); }
+    .prayer.next { outline: 2px solid var(--gold); background: rgba(242,200,121,.14); }
+    .prayer-name { display: block; color: var(--muted); font-size: clamp(17px, 2vw, 22px); }
+    .prayer-time { display: block; margin-top: 8px; color: #fff; direction: ltr; font-size: clamp(24px, 3vw, 34px); font-weight: bold; }
+    #status { min-height: 28px; color: var(--muted); font-size: 16px; }
+    button { margin-top: 10px; padding: 12px 22px; border: 0; border-radius: 12px; color: #13251d; background: var(--gold); font-size: 17px; font-weight: bold; cursor: pointer; }
+    footer { margin-top: 22px; color: #b7c8bd; font-size: 14px; line-height: 1.7; }
+    @media (min-width: 800px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+    @media (max-width: 420px) { .grid { gap: 8px; } .prayer { padding: 14px 5px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="badge">🌿 أوقات الصلاة • الطبيعة والسكينة</div>
+    <h1>أذان أودنسه</h1>
+    <div class="location">أودنسه، الدنمارك</div>
+    <div id="date">جارٍ تحميل التاريخ…</div>
+
+    <section class="hero" aria-live="polite">
+      <span class="label">الصلاة القادمة</span>
+      <strong id="next-name">جارٍ التحميل…</strong>
+      <span id="countdown">--:--:--</span>
+    </section>
+
+    <section class="grid" aria-label="مواقيت الصلاة">
+      <div class="prayer" id="card-Fajr"><span class="prayer-name">الفجر</span><strong class="prayer-time" id="time-Fajr">--:--</strong></div>
+      <div class="prayer" id="card-Dhuhr"><span class="prayer-name">الظهر</span><strong class="prayer-time" id="time-Dhuhr">--:--</strong></div>
+      <div class="prayer" id="card-Asr"><span class="prayer-name">العصر</span><strong class="prayer-time" id="time-Asr">--:--</strong></div>
+      <div class="prayer" id="card-Maghrib"><span class="prayer-name">المغرب</span><strong class="prayer-time" id="time-Maghrib">--:--</strong></div>
+      <div class="prayer" id="card-Isha"><span class="prayer-name">العشاء</span><strong class="prayer-time" id="time-Isha">--:--</strong></div>
+      <div class="prayer"><span class="prayer-name">الشروق</span><strong class="prayer-time" id="time-Sunrise">--:--</strong></div>
+    </section>
+
+    <div id="status" role="status">جارٍ جلب مواقيت الصلاة…</div>
+    <button id="refresh" type="button">تحديث المواقيت</button>
+    <footer>المواقيت تجريبية ومحسوبة عبر خدمة AlAdhan (طريقة الحساب 3: رابطة العالم الإسلامي).<br>يُرجى مقارنتها بتوقيت المسجد المحلي قبل الاعتماد عليها.</footer>
+  </main>
+  <script>
+    (function () {
+      var prayerNames = { Fajr: 'الفجر', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+      var prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+      var todayRows = [];
+      var tomorrowRows = [];
+      var requestCount = 0;
+
+      function dateKey(date) {
+        var day = ('0' + date.getDate()).slice(-2);
+        var month = ('0' + (date.getMonth() + 1)).slice(-2);
+        return day + '-' + month + '-' + date.getFullYear();
+      }
+      function timeDate(date, value) {
+        var parts = String(value).match(/(\d{1,2}):(\d{2})/);
+        if (!parts) return null;
+        var result = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Number(parts[1]), Number(parts[2]), 0, 0);
+        return result;
+      }
+      function requestDay(date, callback) {
+        var xhr = new XMLHttpRequest();
+        var url = 'https://api.aladhan.com/v1/timingsByCity/' + dateKey(date) + '?city=Odense&country=Denmark&method=3';
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState !== 4) return;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              var result = JSON.parse(xhr.responseText);
+              if (result && result.data && result.data.timings) callback(null, result.data.timings);
+              else callback(new Error('بيانات المواقيت غير متاحة'));
+            } catch (error) { callback(error); }
+          } else callback(new Error('تعذر الاتصال بخدمة المواقيت'));
+        };
+        xhr.onerror = function () { callback(new Error('تحقق من اتصال الإنترنت')) };
+        xhr.send();
+      }
+      function updateDate() {
+        var now = new Date();
+        document.getElementById('date').textContent = now.toLocaleDateString('ar-DK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      }
+      function makeRows(date, timings) {
+        var rows = [];
+        for (var i = 0; i < prayers.length; i++) {
+          var key = prayers[i];
+          rows.push({ key: key, name: prayerNames[key], time: timeDate(date, timings[key]) });
+        }
+        return rows;
+      }
+      function render() {
+        if (!todayRows.length) return;
+        var now = new Date();
+        var next = null;
+        var all = todayRows.concat(tomorrowRows);
+        for (var i = 0; i < all.length; i++) {
+          if (all[i].time && all[i].time.getTime() > now.getTime()) { next = all[i]; break; }
+        }
+        for (var j = 0; j < todayRows.length; j++) {
+          var row = todayRows[j];
+          var shownTime = row.time;
+          document.getElementById('time-' + row.key).textContent = shownTime ? ('0' + shownTime.getHours()).slice(-2) + ':' + ('0' + shownTime.getMinutes()).slice(-2) : '--:--';
+          var card = document.getElementById('card-' + row.key);
+          card.className = 'prayer' + (next && next.key === row.key && next.time.getDate() === now.getDate() ? ' next' : '');
+        }
+        var sunrise = document.getElementById('time-Sunrise');
+        // Sunrise is shown separately and is not included in the next-prayer countdown.
+        requestCount = requestCount;
+        if (next) {
+          document.getElementById('next-name').textContent = next.name;
+          var seconds = Math.max(0, Math.floor((next.time.getTime() - now.getTime()) / 1000));
+          var hours = ('0' + Math.floor(seconds / 3600)).slice(-2);
+          var minutes = ('0' + Math.floor((seconds % 3600) / 60)).slice(-2);
+          var remainder = ('0' + (seconds % 60)).slice(-2);
+          document.getElementById('countdown').textContent = hours + ':' + minutes + ':' + remainder;
+        }
+        updateDate();
+      }
+      function loadTimes() {
+        var today = new Date();
+        var tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        document.getElementById('status').textContent = 'جارٍ تحديث المواقيت…';
+        requestDay(today, function (error, timings) {
+          if (error) { document.getElementById('status').textContent = error.message + '؛ حاول التحديث لاحقًا.'; return; }
+          todayRows = makeRows(today, timings);
+          var sunriseTime = timeDate(today, timings.Sunrise);
+          document.getElementById('time-Sunrise').textContent = sunriseTime ? ('0' + sunriseTime.getHours()).slice(-2) + ':' + ('0' + sunriseTime.getMinutes()).slice(-2) : '--:--';
+          requestDay(tomorrow, function (tomorrowError, tomorrowTimings) {
+            tomorrowRows = tomorrowError ? [] : makeRows(tomorrow, tomorrowTimings);
+            render();
+            document.getElementById('status').textContent = tomorrowError ? 'تم تحميل مواقيت اليوم؛ تعذر تحميل الغد.' : 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-DK');
+          });
+        });
+      }
+      document.getElementById('refresh').onclick = loadTimes;
+      updateDate();
+      loadTimes();
+      window.setInterval(render, 1000);
+      window.setInterval(loadTimes, 30 * 60 * 1000);
+    }());
+  </script>
+</body>
+</html>
