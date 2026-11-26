@@ -1,0 +1,19 @@
+{
+  "name": "Zeina Abo Alola Prayer",
+  "short_name": "Prayer Times",
+  "description": "Prayer times and daily English Islamic adhkar for Odense, Denmark",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#102b24",
+  "theme_color": "#102b24",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
